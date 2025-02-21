@@ -19,7 +19,7 @@ set $term kitty
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
-set $menu dmenu_path | wmenu | xargs swaymsg exec -- 
+set $menu dmenu_path | wmenu -b | xargs swaymsg exec -- 
 
 
 include /etc/sway/config-vars.d/*
@@ -36,9 +36,21 @@ gaps inner 4
 #   output HDMI-A-1 resolution 1920x1080 position 1920,0
 #
 # You can get the names of your outputs by running: swaymsg -t get_outputs
-ouput eDP-1 resolution 2160x1440 pos 0,0
-output HDMI-A-1 resolution 1920x1080 pos 2160,0
+output eDP-1 res 2160x1440 pos 0,0
+output HDMI-A-1 res 1920x1080 pos 2160,0
 focus output HDMI-A-1
+
+# Set default border style
+default_border pixel 
+default_floating_border pixel 
+
+# Focused window border colors (customize as needed)
+client.focused          #50a14f #50a14f #50a14f #50a14f #50a14f 
+
+# Unfocused windows with transparent borders
+client.unfocused        #00000000 #00000000 #FFFFFF #00000000 #00000000
+client.focused_inactive #00000000 #00000000 #FFFFFF #00000000 #00000000
+
 
 ### Idle configuration
 #
@@ -52,7 +64,10 @@ focus output HDMI-A-1
 # This will lock your screen after 300 seconds of inactivity, then turn off
 # your displays after another 300 seconds, and turn your screens back on when
 # resumed. It will also lock your screen before your computer goes to sleep.
-
+exec swayidle -w \
+         timeout 300 'swaylock -f -c 000000' \
+         timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"'
+bindsym $mod+Shift+w exec swaylock
 ### Input configuration
 #
 # Example configuration:
@@ -68,6 +83,7 @@ focus output HDMI-A-1
 # Read `man 5 sway-input` for more information about this section.
 input "type:pointer" {
       natural_scroll enabled
+      accel_profile "flat"
 }
 ### Key bindings
 #
@@ -81,7 +97,7 @@ input "type:pointer" {
 
     # Start your launcher
     bindsym $mod+d exec $menu
-
+    bindsym $mod+Shift+d exec j4-dmenu-desktop
     # Drag floating windows by holding down $mod and left mouse button.
     # Resize them with right mouse button + $mod.
     # Despite the name, also works for non-floating windows.
@@ -131,7 +147,7 @@ input "type:pointer" {
     bindsym $mod+7 workspace number 7
     bindsym $mod+8 workspace number 8
     bindsym $mod+9 workspace number 9
-    bindsym $mod+0 workspace number 10
+    bindsym $mod+0 workspace number 0
     # Move focused container to workspace
     bindsym $mod+Shift+1 move container to workspace number 1
     bindsym $mod+Shift+2 move container to workspace number 2
@@ -142,7 +158,7 @@ input "type:pointer" {
     bindsym $mod+Shift+7 move container to workspace number 7
     bindsym $mod+Shift+8 move container to workspace number 8
     bindsym $mod+Shift+9 move container to workspace number 9
-    bindsym $mod+Shift+0 move container to workspace number 10
+    bindsym $mod+Shift+0 move container to workspace number 0
     # Note: workspaces can have any name you want, not just numbers.
     # We just use 1-10 as the default.
 #
@@ -212,18 +228,49 @@ bindsym $mod+r mode "resize"
 #
 # Read `man 5 sway-bar` for more information about this section.
 bar {
+    font "Roboto Mono" Regular 10
+    mode dock
+    gaps 0 4 4 4
     position top
+    output HDMI-A-1
+    
 
     # When the status_command prints a new line to stdout, swaybar updates.
     # The default just shows the current date and time.
-    status_command while date +'%Y-%m-%d %X'; do sleep 1; done
+    # status_command while date +'%Y-%m-%d %X'; do sleep 1; done
+    status_command while ~/.config/sway/sway_bar.sh; do sleep 0.5; done
 
     colors {
-        statusline #ffffff
-        background #323232
-        inactive_workspace #32323200 #32323200 #5c5c5c
+        statusline #383a42
+        background #fafafa
+        focused_workspace #fafafa #50a14f #fafafa 
+        ##        inactive_workspace #32323200 #32323200 #5c5c5c
+        inactive_workspace #fafafa #e45649 #fafafa
     }
 }
 
 include /etc/sway/config.d/*
 
+# Increase volume
+bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
+
+# Decrease volume
+bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5%
+
+# Mute/unmute audio
+bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
+# Play/Pause
+bindsym XF86AudioPlay exec playerctl play-pause
+# Next track
+bindsym XF86AudioNext exec playerctl next
+# Previous track
+bindsym XF86AudioPrev exec playerctl previous
+# Stop
+bindsym XF86AudioStop exec playerctl stop
+
+# Increase brightness
+bindsym XF86MonBrightnessUp exec brightnessctl set +10%
+# Decrease brightness
+bindsym XF86MonBrightnessDown exec brightnessctl set -10%
+
+exec wlsunset -l 36.89 -L 30.71
