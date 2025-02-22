@@ -274,3 +274,4 @@ bindsym XF86MonBrightnessUp exec brightnessctl set +10%
 bindsym XF86MonBrightnessDown exec brightnessctl set -10%
 
 exec wlsunset -l 36.89 -L 30.71
+exec easyeffects --gapplication-service
